@@ -15,6 +15,15 @@ class Linear_QNet(nn.Module):
 
     def save(self, file_name='model.pth'):
         torch.save(self.state_dict(), file_name)
+    
+    def get_activations(self, x):
+        # Get raw input
+        input_layer = x.detach().numpy()
+        # Get hidden layer after ReLU
+        hidden_layer = torch.relu(self.linear1(x)).detach().numpy()
+        # Get final output (raw Q-values)
+        output_layer = self.linear2(torch.tensor(hidden_layer)).detach().numpy()
+        return input_layer, hidden_layer, output_layer
 
 class QTrainer:
     def __init__(self, model, lr, gamma):

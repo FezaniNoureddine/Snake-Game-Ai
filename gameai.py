@@ -15,15 +15,21 @@ FPS = 30
 
 
 class SnakeGameAI:
-    def __init__(self):
+    def __init__(self, headless=False):
         pygame.init()
-        self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SCALED)
-        pygame.display.set_caption("Snake Game AI")
+        self.headless = headless
+        if not headless:
+            self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SCALED)
+            pygame.display.set_caption("Snake Game AI")
+            self.w = self.screen.get_width()
+            self.h = self.screen.get_height()
+        else:
+            self.screen = None
+            self.w = WINDOW_WIDTH
+            self.h = WINDOW_HEIGHT
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont(None, 36)
         self.large_font = pygame.font.SysFont(None, 48)
-        self.w = self.screen.get_width()
-        self.h = self.screen.get_height()
         self.reset()
 
     def reset(self):
@@ -95,6 +101,8 @@ class SnakeGameAI:
         return False
 
     def _update_ui(self):
+        if self.headless or self.screen is None:
+            return
         self.screen.fill("black")
         pygame.draw.rect(self.screen, "white", self.screen.get_rect(), 16)
 
@@ -107,6 +115,25 @@ class SnakeGameAI:
         self.screen.blit(score_text, (20, 20))
 
         pygame.display.flip()
+
+    def render_game(self, surface, x_offset=0, y_offset=0):
+        """Render the game board to a given pygame surface at offset (x_offset, y_offset)"""
+        # Draw background
+        pygame.draw.rect(surface, "black", (x_offset, y_offset, WINDOW_WIDTH, WINDOW_HEIGHT))
+        
+        # Draw border
+        pygame.draw.rect(surface, "white", (x_offset, y_offset, WINDOW_WIDTH, WINDOW_HEIGHT), 16)
+        
+        # Draw snake
+        for segment in self.snake:
+            pygame.draw.rect(surface, "green", (x_offset + segment.x, y_offset + segment.y, TILE_SIZE, TILE_SIZE))
+        
+        # Draw apple
+        pygame.draw.rect(surface, "red", (x_offset + self.apple.x, y_offset + self.apple.y, TILE_SIZE, TILE_SIZE))
+        
+        # Draw score
+        score_text = self.font.render(f"Score: {self.score}", True, "white")
+        surface.blit(score_text, (x_offset + 20, y_offset + 20))
 
     def _move(self, action):
         # action

@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 import pygame
 from gameai import SnakeGameAI
 from brain import Linear_QNet, QTrainer
@@ -5,9 +8,58 @@ import random
 import torch
 from collections import deque
 
+NGAME = 0
+
 class Agent:
+    # loading function can list saved models and let you choose to load one or start from scratch
+
+    def available_models(self, models_dir='MODELS'):
+        models_path = Path(__file__).resolve().parent / models_dir
+        if not models_path.exists():
+            return []
+        return sorted(models_path.glob('*.pth'))
+
+    def load(self, path=None, models_dir='MODELS'):
+        if path is None:
+            models = self.available_models(models_dir)
+            if not models:
+                print('No saved models found. Starting from scratch.')
+                return False
+
+            print('Available models:')
+            for index, model_file in enumerate(models, start=1):
+                print(f'  {index}. {model_file.name}')
+            print('  0. Start from scratch')
+
+            choice = None
+            while choice is None:
+                selection = input('Choose a model number to load, or 0 to start from scratch: ').strip()
+                if not selection.isdigit():
+                    print('Please enter a number.')
+                    continue
+                choice = int(selection)
+                if choice < 0 or choice > len(models):
+                    print('Selection out of range. Try again.')
+                    choice = None
+
+            if choice == 0:
+                print('Starting from scratch.')
+                return False
+
+            path = models[choice - 1]
+
+        path = Path(path)
+        if not path.exists():
+            print(f'Model file not found: {path}')
+            return False
+
+        self.model.load_state_dict(torch.load(path))
+        self.model.eval()
+        print(f'Model loaded from {path}')
+        return True
+
     def __init__(self):
-        self.n_games = 0
+        self.n_games = NGAME
         self.epsilon = 80  # randomness
         self.gamma = 0.9  # discount rate
         self.memory = deque(maxlen=100_000)  # popleft()
@@ -93,8 +145,9 @@ class Agent:
 def train():
     record = 0
     agent = Agent()
+    agent.load()  # Load pre-trained model
     game = SnakeGameAI()
-    save_milestones = [1, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000]
+    save_milestones = [1, 10, 100, 200, 500, 1000, 1500, 2000, 2500, 3000]
 
     while True:
         # Get old state
@@ -118,7 +171,7 @@ def train():
             agent.n_games += 1
             agent.train_long_memory()  # Train on a random batch from memory
 
-            # Milestone Saves
+            # Milestone Saves - Fixed naming (removed + 500)
             if agent.n_games in save_milestones:
                 agent.model.save(f'model_game_{agent.n_games}.pth')
 
