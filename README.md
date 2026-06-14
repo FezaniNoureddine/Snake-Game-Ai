@@ -1,6 +1,12 @@
 # Snake Game AI
 in this project i made a snake game (game.py), then trained an ai to play the game using pytorch reinforced learning (gameai.py, agent.py, brain.py)
 
+## video about the project
+<a href="https://youtu.be/F2BhlaFetIU" target="_blank">
+   <img src="https://i9.ytimg.com/vi/F2BhlaFetIU/mqdefault_custom_2.jpg?v=6a2d555b&sqp=CKDCutEG&rs=AOn4CLBmJoCaW15YNaPPfdWLvnMXsCGnHQ" alt="Watch the video" width="600" height="auto" />
+</a>
+
+
 ## THE GAME (game.py)
 you can play this game by copying the repo and
 
